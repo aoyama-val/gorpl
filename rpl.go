@@ -58,9 +58,8 @@ func main() {
 }
 
 func parseArgs() {
-	// -hオプション用文言
 	flag.Usage = func() {
-		fmt.Printf("Usage: %s [OPTIONS] <from> <to> files...\n", os.Args[0])
+		fmt.Printf("Usage: rpl [options...] <from> <to> files...\n")
 		flag.PrintDefaults()
 	}
 
@@ -72,7 +71,6 @@ func parseArgs() {
 
 	if flag.NArg() < 2 {
 		flag.Usage()
-		//fmt.Println("Usage: rpl [-i] [-r] [-w] <from> <to> [files...]")
 		os.Exit(1)
 	}
 
