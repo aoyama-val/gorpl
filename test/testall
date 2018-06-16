@@ -1,0 +1,20 @@
+#!/bin/sh
+
+runtest() {
+    filename="$1"
+    shift
+    cp "$filename" "$filename.tmp"
+    ../rpl $* "$filename.tmp"
+    diff -u "$filename.expected" "$filename.tmp" && echo -e "\x1b[1;32mSuccess\x1b[0m: $filename" || echo "\x1b[1;31mFail\x1b[0m: $filename"
+    echo
+}
+
+runtest "normal" hoge fuga
+runtest "with-w" -w hoge fuga
+runtest "without-w"  hoge fuga
+runtest "with-i" -i hoge fuga
+runtest "without-i"  hoge fuga
+runtest "with-r" -r .oge fuga
+runtest "without-r"  .oge fuga
+runtest "backslash-in-to"  hoge '\1'
+runtest "dollar-in-to"  hoge '$1'

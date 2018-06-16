@@ -25,6 +25,7 @@ var to = ""
 var filenames = make([]string, 0, 100)
 
 var re *regexp.Regexp
+var escapedTo string
 
 var replacedFileCount = 0
 var noChangeFileCount = 0
@@ -58,7 +59,7 @@ func main() {
 
 func parseArgs() {
 	flag.BoolVar(&options.IgnoreCase, "i", false, "大文字小文字を区別しない")
-	//flag.BoolVar(&options.RegExp, "r", false, "正規表現で検索")
+	flag.BoolVar(&options.RegExp, "r", false, "正規表現で検索")
 	flag.BoolVar(&options.WordWise, "w", false, "単語全体にマッチ")
 
 	flag.Parse()
@@ -75,18 +76,20 @@ func parseArgs() {
 
 func buildRegexp() {
 	var strRe string
-	if !options.RegExp {
-		from = regexp.QuoteMeta(from)
+	if options.RegExp {
+		strRe = from
+	} else {
+		strRe = regexp.QuoteMeta(from)
 	}
 	if options.WordWise {
-		strRe = "\\b" + from + "\\b"
-	} else {
-		strRe = from
+		strRe = `\b` + strRe + `\b`
 	}
 	if options.IgnoreCase {
-		strRe = "(?i)" + strRe
+		strRe = `(?i)` + strRe
 	}
 	re = regexp.MustCompile(strRe)
+
+	escapedTo = regexp.MustCompile(`\$`).ReplaceAllString(to, "$$$$")
 }
 
 func message(process string, filename string, detail string, color string) {
@@ -109,7 +112,7 @@ func rpl(filename string) (bool, int) {
 
 	content := readFile(filename)
 
-	replaced := re.ReplaceAllString(content, to)
+	replaced := re.ReplaceAllString(content, escapedTo)
 
 	writeFile(filename, replaced)
 
