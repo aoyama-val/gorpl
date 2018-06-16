@@ -58,14 +58,21 @@ func main() {
 }
 
 func parseArgs() {
-	flag.BoolVar(&options.IgnoreCase, "i", false, "大文字小文字を区別しない")
-	flag.BoolVar(&options.RegExp, "r", false, "正規表現で検索")
-	flag.BoolVar(&options.WordWise, "w", false, "単語全体にマッチ")
+	// -hオプション用文言
+	flag.Usage = func() {
+		fmt.Printf("Usage: %s [OPTIONS] <from> <to> files...\n", os.Args[0])
+		flag.PrintDefaults()
+	}
+
+	flag.BoolVar(&options.IgnoreCase, "i", false, "ignore case")
+	flag.BoolVar(&options.RegExp, "r", false, "regular expression search")
+	flag.BoolVar(&options.WordWise, "w", false, "match whole word")
 
 	flag.Parse()
 
 	if flag.NArg() < 2 {
-		fmt.Println("Usage: rpl [-i] [-r] [-w] <from> <to> [files...]")
+		flag.Usage()
+		//fmt.Println("Usage: rpl [-i] [-r] [-w] <from> <to> [files...]")
 		os.Exit(1)
 	}
 
