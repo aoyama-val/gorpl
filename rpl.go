@@ -1,0 +1,133 @@
+package main
+
+import (
+	"flag"
+	"fmt"
+	"io/ioutil"
+	"os"
+	"regexp"
+)
+
+type Args struct {
+	IgnoreCase bool
+	RegExp     bool
+	WordWise   bool
+}
+
+var options = Args{
+	IgnoreCase: false,
+	RegExp:     false,
+	WordWise:   false,
+}
+
+var from = ""
+var to = ""
+var filenames = make([]string, 0, 100)
+
+var re *regexp.Regexp
+
+var replacedFileCount = 0
+var noChangeFileCount = 0
+var ignoredFileCount = 0
+var totalMatchCount = 0
+
+func main() {
+	parseArgs()
+
+	buildRegexp()
+
+	fmt.Printf("Search: %v\n", re)
+
+	for _, filename := range filenames {
+		isProcessed, matchCount := rpl(filename)
+		if isProcessed {
+			if matchCount > 0 {
+				replacedFileCount += 1
+			} else {
+				noChangeFileCount += 1
+			}
+		} else {
+			ignoredFileCount += 1
+		}
+		totalMatchCount += matchCount
+	}
+
+	fmt.Print("\n")
+	fmt.Printf("%d files (replaced: %d / no change: %d / ignored: %d) Total %d matches\n", len(filenames), replacedFileCount, noChangeFileCount, ignoredFileCount, totalMatchCount)
+}
+
+func parseArgs() {
+	flag.BoolVar(&options.IgnoreCase, "i", false, "大文字小文字を区別しない")
+	//flag.BoolVar(&options.RegExp, "r", false, "正規表現で検索")
+	flag.BoolVar(&options.WordWise, "w", false, "単語全体にマッチ")
+
+	flag.Parse()
+
+	if flag.NArg() < 2 {
+		fmt.Println("Usage: rpl [-i] [-r] [-w] <from> <to> [files...]")
+		os.Exit(1)
+	}
+
+	from = os.Args[flag.NFlag()+1]
+	to = os.Args[flag.NFlag()+2]
+	filenames = os.Args[flag.NFlag()+3:]
+}
+
+func buildRegexp() {
+	var strRe string
+	if !options.RegExp {
+		from = regexp.QuoteMeta(from)
+	}
+	if options.WordWise {
+		strRe = "\\b" + from + "\\b"
+	} else {
+		strRe = from
+	}
+	if options.IgnoreCase {
+		strRe = "(?i)" + strRe
+	}
+	re = regexp.MustCompile(strRe)
+}
+
+func message(process string, filename string, detail string, color string) {
+	fmt.Printf("\x1b[%sm%s\x1b[0m    [%s] %s\n", color, process, filename, detail)
+}
+
+func rpl(filename string) (bool, int) {
+	// 通常ファイルかどうか判定する
+	fileInfo, err := os.Stat(filename)
+	if err != nil {
+		panic(err)
+	}
+	mode := fileInfo.Mode()
+	if !mode.IsRegular() {
+		message("Ignore", filename, "(not a regular file)", "1;33")
+		return false, 0
+	}
+
+	message("Replace", filename, "n matches", "1;32")
+
+	content := readFile(filename)
+
+	replaced := re.ReplaceAllString(content, to)
+
+	writeFile(filename, replaced)
+
+	return true, 0
+}
+
+func readFile(filename string) string {
+	b, err := ioutil.ReadFile(filename)
+	if err != nil {
+		panic(err)
+	}
+
+	return string(b)
+}
+
+func writeFile(filename string, content string) {
+	err := ioutil.WriteFile(filename, []byte(content), 0644)
+	if err != nil {
+		panic(err)
+	}
+}
