@@ -18,3 +18,4 @@ runtest "with-r" -r .oge fuga
 runtest "without-r"  .oge fuga
 runtest "backslash-in-to"  hoge '\1'
 runtest "dollar-in-to"  hoge '$1'
+runtest "not-utf8"  hoge fuga
