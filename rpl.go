@@ -6,6 +6,8 @@ import (
 	"io/ioutil"
 	"os"
 	"regexp"
+	"strconv"
+	"strings"
 )
 
 type Args struct {
@@ -63,9 +65,9 @@ func parseArgs() {
 		flag.PrintDefaults()
 	}
 
-	flag.BoolVar(&options.IgnoreCase, "i", false, "ignore case")
-	flag.BoolVar(&options.RegExp, "r", false, "regular expression search")
-	flag.BoolVar(&options.WordWise, "w", false, "match whole word")
+	flag.BoolVar(&options.IgnoreCase, "i", false, "Ignore case")
+	flag.BoolVar(&options.RegExp, "r", false, `Regular expression search. '\1' '\2' ... '\9' in <to> are replaced to corresponding submatch.`)
+	flag.BoolVar(&options.WordWise, "w", false, "Match whole word")
 
 	flag.Parse()
 
@@ -117,11 +119,36 @@ func rpl(filename string) (bool, int) {
 
 	content := readFile(filename)
 
-	replaced := re.ReplaceAllString(content, escapedTo)
+	replaced := rplString(content)
 
 	writeFile(filename, replaced)
 
 	return true, 0
+}
+
+func rplString(str string) string {
+	cb := func(s string) string {
+		// Treat \1, \2, ..., \9
+		if options.RegExp {
+			submatches := re.FindStringSubmatch(s)
+			replaceMap := []string{}
+			for i := 1; i <= 9; i++ {
+				replaceMap = append(replaceMap, "\\"+strconv.Itoa(i))
+				if i < len(submatches) {
+					replaceMap = append(replaceMap, submatches[i])
+				} else {
+					replaceMap = append(replaceMap, "")
+				}
+			}
+			replacer := strings.NewReplacer(replaceMap...)
+			return replacer.Replace(to)
+		} else {
+			return to
+		}
+	}
+
+	replaced := re.ReplaceAllStringFunc(str, cb)
+	return replaced
 }
 
 func readFile(filename string) string {

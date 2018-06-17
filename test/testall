@@ -4,8 +4,8 @@ runtest() {
     filename="$1"
     shift
     cp "$filename" "$filename.tmp"
-    ../rpl $* "$filename.tmp"
-    diff -u "$filename.expected" "$filename.tmp" && echo -e "\x1b[1;32mSuccess\x1b[0m: $filename" || echo "\x1b[1;31mFail\x1b[0m: $filename"
+    ../rpl "$@" "$filename.tmp"
+    diff -u "$filename.expected" "$filename.tmp" && echo -e "\x1b[1;32mSuccess\x1b[0m: $filename" || echo -e "\x1b[1;31mFail\x1b[0m: $filename"
     echo
 }
 
@@ -18,4 +18,6 @@ runtest "with-r" -r .oge fuga
 runtest "without-r"  .oge fuga
 runtest "backslash-in-to"  hoge '\1'
 runtest "dollar-in-to"  hoge '$1'
+runtest "dollar-in-to-with-r"  -r '(.)oge' 'X$1Y'
+runtest "backslash-in-to-with-r"  -r '(.)oge' 'X\1Y'
 runtest "not-utf8"  hoge fuga
