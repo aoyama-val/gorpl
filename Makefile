@@ -1,7 +1,7 @@
-all: rpl
+all: gorpl
 
-test: rpl
+test: gorpl
 	cd test && ./testall
 
-rpl: rpl.go
+gorpl: gorpl.go
 	go build
