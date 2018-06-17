@@ -1,26 +1,21 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/jessevdk/go-flags"
 )
 
-type Args struct {
-	IgnoreCase bool
-	RegExp     bool
-	WordWise   bool
-}
-
 var (
-	options = Args{
-		IgnoreCase: false,
-		RegExp:     false,
-		WordWise:   false,
+	options struct {
+		IgnoreCase bool `short:"i" long:"ignore-case" description:"Ignore case"`
+		RegExp     bool `short:"r" long:"regexp" description:"Regular expression search. \\1 \\2 ... \\9 are replaced to corresponding submatch."`
+		WordWise   bool `short:"w" long:"word" description:"Match whole word"`
 	}
 
 	from      = ""
@@ -28,7 +23,7 @@ var (
 	filenames = []string{}
 
 	re        *regexp.Regexp
-	escapedTo string
+	escapedTo = ""
 
 	replacedFileCount = 0
 	noChangeFileCount = 0
@@ -62,25 +57,23 @@ func main() {
 }
 
 func parseArgs() {
-	flag.Usage = func() {
-		fmt.Printf("Usage: rpl [options...] <from> <to> files...\n")
-		flag.PrintDefaults()
-	}
+	parser := flags.NewParser(&options, flags.PrintErrors|flags.PassDoubleDash)
+	parser.Usage = "[options...] <from> <to> [filenames...]"
 
-	flag.BoolVar(&options.IgnoreCase, "i", false, "Ignore case")
-	flag.BoolVar(&options.RegExp, "r", false, `Regular expression search. '\1' '\2' ... '\9' in <to> are replaced to corresponding submatch.`)
-	flag.BoolVar(&options.WordWise, "w", false, "Match whole word")
-
-	flag.Parse()
-
-	if flag.NArg() < 2 {
-		flag.Usage()
+	args, err := parser.Parse()
+	if err != nil {
+		fmt.Println(err.Error())
 		os.Exit(1)
 	}
 
-	from = os.Args[flag.NFlag()+1]
-	to = os.Args[flag.NFlag()+2]
-	filenames = os.Args[flag.NFlag()+3:]
+	if len(args) < 2 {
+		parser.WriteHelp(os.Stdout)
+		os.Exit(1)
+	}
+
+	from = args[0]
+	to = args[1]
+	filenames = args[2:]
 }
 
 func buildRegexp() {

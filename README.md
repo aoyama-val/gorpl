@@ -2,13 +2,22 @@ A command-line tool to find and replace strings in multiple files, written in Go
 It is designed for simplicity and friendly-output, and not a complete replacement for Joe Laffey's/Debian's rpl.
 It resolves some drawbacks that perl/sed have (See below).
 
+# Installation
+
+```
+go get github.com/aoyama-val/rpl
+```
+
 # Usage
 
 ```
-Usage: rpl [options...] <from> <to> files...
-  -i    ignore case
-  -r    regular expression search
-  -w    match whole word
+Usage:
+  rpl
+
+Application Options:
+  -i, --ignore-case  Ignore case
+  -r, --regexp       Regular expression search. \1 \2 ... \9 are replaced to corresponding submatch.
+  -w, --word         Match whole word
 ```
 
 ```
