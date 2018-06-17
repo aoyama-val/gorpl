@@ -16,23 +16,25 @@ type Args struct {
 	WordWise   bool
 }
 
-var options = Args{
-	IgnoreCase: false,
-	RegExp:     false,
-	WordWise:   false,
-}
+var (
+	options = Args{
+		IgnoreCase: false,
+		RegExp:     false,
+		WordWise:   false,
+	}
 
-var from = ""
-var to = ""
-var filenames = make([]string, 0, 100)
+	from      = ""
+	to        = ""
+	filenames = []string{}
 
-var re *regexp.Regexp
-var escapedTo string
+	re        *regexp.Regexp
+	escapedTo string
 
-var replacedFileCount = 0
-var noChangeFileCount = 0
-var ignoredFileCount = 0
-var totalMatchCount = 0
+	replacedFileCount = 0
+	noChangeFileCount = 0
+	ignoredFileCount  = 0
+	totalMatchCount   = 0
+)
 
 func main() {
 	parseArgs()
